@@ -23,7 +23,7 @@ class RactorServer
     # the yielded request
     queue = Ractor.new do
       loop do
-        conn = Ractor.recv
+        conn = Ractor.receive
         Ractor.yield(conn, move: true)
       end
     end
