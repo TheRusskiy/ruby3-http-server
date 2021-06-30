@@ -1,11 +1,29 @@
 require 'socket'
 
-PORT = ENV.fetch('PORT', 3000)
-BIND = ENV.fetch('BIND', '127.0.0.1').freeze
-READ_QUEUE = ENV.fetch('QUEUE', 12).to_i
-WORKERS_COUNT = ENV.fetch('WORKERS', 4).to_i
+class FileServingApp
+  def call(env)
+    path = Dir.getwd + env['PATH_INFO']
+    if File.exist?(path)
+      body = File.read(path)
+      [200, { "Content-Type" => "text/html" }, [body]]
+    else
+      [404, { "Content-Type" => "text/html" }, ['']]
+    end
+  end
+end
 
 class RactorServer
+  PORT = ENV.fetch('PORT', 3000)
+  BIND = ENV.fetch('BIND', '127.0.0.1').freeze
+  READ_QUEUE = ENV.fetch('QUEUE', 12).to_i
+  WORKERS_COUNT = ENV.fetch('WORKERS', 4).to_i
+
+  attr_accessor :app
+
+  def initialize(app)
+    self.app = app
+  end
+
   def start
     queue = Ractor.new do
       loop do
@@ -14,12 +32,17 @@ class RactorServer
       end
     end
 
-    workers = WORKERS_COUNT.times.map do
-      Ractor.new(queue) do |queue|
+    WORKERS_COUNT.times.map do
+      Ractor.new(queue, self) do |queue, server|
         loop do
           conn = queue.take
           request = RequestParser.new(conn).parse
-          respond_for_request(conn, request)
+          status, headers, body = server.app.call(
+             'REQUEST_METHOD' => request.method,
+             'PATH_INFO' => request.path,
+             'QUERY_STRING' => request.query
+           )
+          server.respond(conn, status, headers, body)
         ensure
           conn&.close
         end
@@ -39,29 +62,23 @@ class RactorServer
 
     Ractor.select(listener)
   end
-end
 
-def respond_for_request(conn, request)
-  path = Dir.getwd + request.path
-  if File.exist?(path)
-    content = File.read(path)
-    status_code = 200
-  else
-    content = ''
-    status_code = 404
+  def respond(conn_sock, status, headers, body)
+    status_text = {
+      200 => 'OK',
+      404 => 'Not Found'
+    }[status]
+    conn_sock.send("HTTP/1.1 #{status} #{status_text}\r\n", 0)
+    conn_sock.send("Content-Length: #{body.sum(&:length)}\r\n", 0)
+    headers.each_pair do |name, value|
+      conn_sock.send("#{name}: #{value}\r\n", 0)
+    end
+    conn_sock.send("Connection: close\r\n", 0)
+    conn_sock.send("\r\n", 0)
+    body.each do |chunk|
+      conn_sock.send(chunk, 0)
+    end
   end
-  respond(conn, status_code, content)
-end
-
-def respond(conn_sock, status_code, content)
-  status_text = {
-    200 => 'OK',
-    404 => 'Not Found'
-  }[status_code]
-  conn_sock.send("HTTP/1.1 #{status_code} #{status_text}\r\n", 0)
-  conn_sock.send("Content-Length: #{content.length}\r\n", 0)
-  conn_sock.send("\r\n", 0)
-  conn_sock.send(content, 0)
 end
 
 class Request < Struct.new(:method, :path, :query, :headers); end
@@ -77,7 +94,7 @@ class RequestParser
 
     raise StandardError, "EOF" unless request_line
 
-    method, full_path, version = request_line.split(' ', 3)
+    method, full_path, _http_version = request_line.split(' ', 3)
     path, query = full_path.split('?', 2)
     headers = {}
     loop do
@@ -90,4 +107,4 @@ class RequestParser
   end
 end
 
-RactorServer.new.start
+RactorServer.new(FileServingApp.new).start
