@@ -15,7 +15,6 @@ class SingleThreadedServer
   end
 
   def start
-
     listener = Thread.new do
       socket = Socket.new(:INET, :STREAM)
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
