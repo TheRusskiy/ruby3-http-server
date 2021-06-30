@@ -16,8 +16,8 @@ class RactorServer
   def start
     queue = Ractor.new do
       loop do
-        req = Ractor.recv
-        Ractor.yield(req, move: true)
+        conn = Ractor.recv
+        Ractor.yield(conn, move: true)
       end
     end
 
