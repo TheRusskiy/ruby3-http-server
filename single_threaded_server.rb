@@ -23,13 +23,7 @@ class SingleThreadedServer
       loop do
         conn, _addr_info = socket.accept
         request = RequestParser.new(conn).parse
-        # in a real app there would be a whole lot more information
-        # about the request, but we are gonna keep it simple
-        status, headers, body = app.call(
-          'REQUEST_METHOD' => request.method,
-          'PATH_INFO' => request.path,
-          'QUERY_STRING' => request.query
-        )
+        status, headers, body = server.app.call(request)
         HttpResponder.call(conn, status, headers, body)
       ensure
         conn&.close

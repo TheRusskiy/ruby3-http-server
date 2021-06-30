@@ -1,5 +1,3 @@
-require_relative 'request'
-
 class RequestParser
   MAX_URI_LENGTH = 2083
   MAX_HEADER_LENGTH = (112 * 1024)
@@ -29,9 +27,17 @@ class RequestParser
       # header name and value are separated by colon and space
       key, value = line.split(/:\s/, 2)
 
-      headers[key] = value
+      # rack expects all headers to be prefixed with HTTP_
+      # and upper cased
+      headers["HTTP_#{key.upcase}"] = value
     end
-    Request.new(method, path, query, headers)
+    # in a real app there would be a whole lot more information
+    # about the request, but we are gonna keep it simple
+    {
+      'REQUEST_METHOD' => method,
+      'PATH_INFO' => path,
+      'QUERY_STRING' => query
+    }.merge(headers)
   end
 
   def strip(str)
