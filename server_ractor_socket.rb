@@ -1,5 +1,4 @@
 require 'socket'
-require 'puma'
 
 PORT = ENV.fetch('PORT', 3000)
 BIND = ENV.fetch('BIND', '127.0.0.1').freeze
@@ -11,7 +10,6 @@ class RactorServer
     queue = Ractor.new do
       loop do
         req = Ractor.recv
-        puts "dispatching #{req}"
         Ractor.yield(req, move: true)
       end
     end
@@ -20,13 +18,9 @@ class RactorServer
       Ractor.new(queue) do |queue|
         loop do
           conn = queue.take
-          puts "received connection: #{conn}"
           request = RequestParser.new(conn).parse
-          puts "request: #{request}"
           respond_for_request(conn, request)
-          puts "responded"
         ensure
-          puts "closing #{conn}"
           conn&.close
         end
       end
@@ -38,8 +32,7 @@ class RactorServer
       socket.bind(Addrinfo.tcp(BIND, PORT))
       socket.listen(READ_QUEUE)
       loop do
-        conn, addr_info = socket.accept
-        puts "new connection: #{conn}"
+        conn, _addr_info = socket.accept
         queue.send(conn, move: true)
       end
     end
@@ -57,7 +50,6 @@ def respond_for_request(conn, request)
     content = ''
     status_code = 404
   end
-  status_code = 200
   respond(conn, status_code, content)
 end
 
@@ -88,15 +80,12 @@ class RequestParser
     method, full_path, version = request_line.split(' ', 3)
     path, query = full_path.split('?', 2)
     headers = {}
-    puts "reading headers..."
     loop do
       line = @conn_sock.gets("\012", (112 * 1024))&.sub("\r\n", '')
-      puts "line: '#{line}'"
       break if line.nil? || line.empty?
       key, value = line.split(/:\s/, 2)
       headers[key] = value
     end
-    puts "building a request"
     Request.new(method, path, query, headers)
   end
 end

@@ -1,5 +1,4 @@
 require 'socket'
-require 'puma'
 
 PORT = ENV.fetch('PORT', 3000).freeze
 BIND = ENV.fetch('BIND', '127.0.0.1').freeze
@@ -35,6 +34,7 @@ def main
         puts "responded: #{request}"
       rescue => e
         puts "Error: #{e.message}"
+        puts e.cause
       end
     end
   end

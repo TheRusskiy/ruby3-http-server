@@ -1,5 +1,4 @@
 require 'socket'
-require 'puma'
 
 PORT = ENV.fetch('PORT', 3000)
 BIND = ENV.fetch('BIND', '127.0.0.1')
