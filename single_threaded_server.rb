@@ -4,7 +4,7 @@ require_relative 'http_responder'
 
 class SingleThreadedServer
   PORT = ENV.fetch('PORT', 3000)
-  BIND = ENV.fetch('BIND', '127.0.0.1').freeze
+  HOST = ENV.fetch('HOST', '127.0.0.1').freeze
   SOCKET_READ_BACKLOG = ENV.fetch('TCP_BACKLOG', 12).to_i
 
   attr_accessor :app
@@ -18,7 +18,7 @@ class SingleThreadedServer
     listener = Thread.new do
       socket = Socket.new(:INET, :STREAM)
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      socket.bind(Addrinfo.tcp(BIND, PORT))
+      socket.bind(Addrinfo.tcp(HOST, PORT))
       socket.listen(SOCKET_READ_BACKLOG)
       loop do
         conn, _addr_info = socket.accept

@@ -4,7 +4,7 @@ require_relative 'http_responder'
 
 class RactorServer
   PORT = ENV.fetch('PORT', 3000)
-  BIND = ENV.fetch('BIND', '127.0.0.1').freeze
+  HOST = ENV.fetch('HOST', '127.0.0.1').freeze
   SOCKET_READ_BACKLOG = ENV.fetch('TCP_BACKLOG', 12).to_i
   WORKERS_COUNT = ENV.fetch('WORKERS', 4).to_i
 
@@ -55,7 +55,7 @@ class RactorServer
     listener = Ractor.new(queue) do |queue|
       socket = Socket.new(:INET, :STREAM)
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      socket.bind(Addrinfo.tcp(BIND, PORT))
+      socket.bind(Addrinfo.tcp(HOST, PORT))
       socket.listen(SOCKET_READ_BACKLOG)
       loop do
         conn, _addr_info = socket.accept

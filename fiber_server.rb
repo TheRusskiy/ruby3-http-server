@@ -5,7 +5,7 @@ require_relative 'http_responder'
 
 class FiberServer
   PORT = ENV.fetch('PORT', 3000)
-  BIND = ENV.fetch('BIND', '127.0.0.1').freeze
+  HOST = ENV.fetch('HOST', '127.0.0.1').freeze
   SOCKET_READ_BACKLOG = ENV.fetch('TCP_BACKLOG', 12).to_i
   WORKERS_COUNT = ENV.fetch('WORKERS', 4).to_i
 
@@ -20,7 +20,7 @@ class FiberServer
     Fiber.set_scheduler(Libev::Scheduler.new)
 
     Fiber.schedule do
-      server = TCPServer.new(BIND, PORT)
+      server = TCPServer.new(HOST, PORT)
       loop do
         conn, _addr_info = server.accept
         Fiber.schedule do
