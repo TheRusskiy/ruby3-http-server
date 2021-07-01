@@ -22,7 +22,7 @@ class SingleThreadedServer
     loop do
       conn, _addr_info = socket.accept
       request = RequestParser.new(conn).parse
-      status, headers, body = server.app.call(request)
+      status, headers, body = app.call(request)
       HttpResponder.call(conn, status, headers, body)
     ensure
       conn&.close
