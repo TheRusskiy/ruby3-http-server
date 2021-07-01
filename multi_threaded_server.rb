@@ -6,11 +6,14 @@ class ThreadPool
   attr_accessor :queue, :running
 
   def initialize(size:)
+    # threadsafe queue to manage work
     self.queue = Queue.new
 
     size.times do
       Thread.new(self.queue) do |queue|
         loop do
+          # `pop` blocks until there's
+          # something in the queue
           task = queue.pop
           task.call
         end
@@ -44,6 +47,7 @@ class MultiThreadedServer
     socket.listen(SOCKET_READ_BACKLOG)
     loop do
       conn, _addr_info = socket.accept
+      # execute the request in one of the threads
       pool.perform do
         begin
           request = RequestParser.new(conn).parse
