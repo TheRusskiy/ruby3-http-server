@@ -15,21 +15,17 @@ class SingleThreadedServer
   end
 
   def start
-    listener = Thread.new do
-      socket = Socket.new(:INET, :STREAM)
-      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      socket.bind(Addrinfo.tcp(HOST, PORT))
-      socket.listen(SOCKET_READ_BACKLOG)
-      loop do
-        conn, _addr_info = socket.accept
-        request = RequestParser.new(conn).parse
-        status, headers, body = server.app.call(request)
-        HttpResponder.call(conn, status, headers, body)
-      ensure
-        conn&.close
-      end
+    socket = Socket.new(:INET, :STREAM)
+    socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+    socket.bind(Addrinfo.tcp(HOST, PORT))
+    socket.listen(SOCKET_READ_BACKLOG)
+    loop do
+      conn, _addr_info = socket.accept
+      request = RequestParser.new(conn).parse
+      status, headers, body = server.app.call(request)
+      HttpResponder.call(conn, status, headers, body)
+    ensure
+      conn&.close
     end
-
-    listener.join
   end
 end
