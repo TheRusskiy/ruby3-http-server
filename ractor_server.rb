@@ -45,6 +45,12 @@ class RactorServer
           request = RequestParser.call(conn)
           status, headers, body = server.app.call(request)
           HttpResponder.call(conn, status, headers, body)
+
+          # I have found that not rescuing errors does not only kill the ractor,
+          # but causes random `allocator undefined for Ractor::MovedObject` errors
+          # which crashes the whole program
+        rescue => e
+          puts e.message
         ensure
           conn&.close
         end
