@@ -7,7 +7,7 @@ This project demonstrates a toy implementation of an HTTP server using Ractors /
 ## Usage
 
 1. Make sure you have ruby 3.0.1 installed.
-2. Edit start.rb to select the server you want to run
+2. Edit start.rb to select the server, and the app you want to run
 3. Run:
 ```
 bundle install

@@ -1,7 +1,7 @@
 class CpuHeavyApp
   def call(env)
     10.times do |i|
-      100000.downto(1) do |j|
+      1000.downto(1) do |j|
         Math.sqrt(j) * i / 0.2
       end
     end

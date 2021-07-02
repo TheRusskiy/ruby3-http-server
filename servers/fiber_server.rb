@@ -1,7 +1,7 @@
 require 'socket'
 require 'libev_scheduler'
-require_relative 'request_parser'
-require_relative 'http_responder'
+require_relative './http_utils/request_parser'
+require_relative './http_utils/http_responder'
 
 class FiberServer
   PORT = ENV.fetch('PORT', 3000)

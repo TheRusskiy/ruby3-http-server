@@ -1,6 +1,6 @@
 require 'socket'
-require_relative 'request_parser'
-require_relative 'http_responder'
+require_relative './http_utils/request_parser'
+require_relative './http_utils/http_responder'
 
 class SingleThreadedServer
   PORT = ENV.fetch('PORT', 3000)

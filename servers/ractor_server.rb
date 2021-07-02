@@ -1,7 +1,7 @@
 require 'socket'
 require 'uri'
-require_relative 'request_parser'
-require_relative 'http_responder'
+require_relative './http_utils/request_parser'
+require_relative './http_utils/http_responder'
 
 class RactorServer
   PORT = ENV.fetch('PORT', 3000)
