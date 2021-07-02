@@ -7,7 +7,6 @@ class FiberServer
   PORT = ENV.fetch('PORT', 3000)
   HOST = ENV.fetch('HOST', '127.0.0.1').freeze
   SOCKET_READ_BACKLOG = ENV.fetch('TCP_BACKLOG', 12).to_i
-  WORKERS_COUNT = ENV.fetch('WORKERS', 4).to_i
 
   attr_accessor :app
 

@@ -66,6 +66,8 @@ class MultiThreadedServer
           request = RequestParser.call(conn)
           status, headers, body = app.call(request)
           HttpResponder.call(conn, status, headers, body)
+        rescue => e
+          puts e.message
         ensure
           conn&.close
         end

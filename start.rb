@@ -5,8 +5,8 @@ require_relative 'multi_threaded_server'
 require_relative 'file_serving_app'
 
 # SERVER = FiberServer
-# SERVER = SingleThreadedServer
+SERVER = SingleThreadedServer
 # SERVER = MultiThreadedServer
-SERVER = RactorServer
+# SERVER = RactorServer
 
 SERVER.new(FileServingApp.new).start
