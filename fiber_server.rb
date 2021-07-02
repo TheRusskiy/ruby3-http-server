@@ -27,6 +27,7 @@ class FiberServer
 
     Fiber.schedule do
       server = TCPServer.new(HOST, PORT)
+      server.listen(SOCKET_READ_BACKLOG)
       loop do
         conn, _addr_info = server.accept
         # ideally we need to limit number of fibers

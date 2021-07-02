@@ -1,4 +1,5 @@
 require 'socket'
+require 'uri'
 require_relative 'request_parser'
 require_relative 'http_responder'
 
@@ -13,6 +14,11 @@ class RactorServer
   # app: Rack app
   def initialize(app)
     self.app = app
+    # this is hack to make URI parsing work,
+    # right now it's broken because this variable
+    # is not marked as shareable
+    Ractor.make_shareable(URI::RFC3986_PARSER)
+    Ractor.make_shareable(URI::DEFAULT_PARSER)
   end
 
   def start
@@ -53,9 +59,7 @@ class RactorServer
     # connections to workers because then we would send requests to workers
     # that might be busy
     listener = Ractor.new(queue) do |queue|
-      socket = Socket.new(:INET, :STREAM)
-      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      socket.bind(Addrinfo.tcp(HOST, PORT))
+      socket = TCPServer.new(HOST, PORT)
       socket.listen(SOCKET_READ_BACKLOG)
       loop do
         conn, _addr_info = socket.accept
