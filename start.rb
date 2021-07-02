@@ -7,9 +7,9 @@ require_relative 'apps/file_serving_app'
 require_relative 'apps/cpu_heavy_app'
 require_relative 'apps/web_request_app'
 
-# APP = CpuHeavyApp
+APP = CpuHeavyApp
 # APP = FileServingApp
-APP = WebRequestApp
+# APP = WebRequestApp
 
 # SERVER = FiberServer
 # SERVER = SingleThreadedServer
