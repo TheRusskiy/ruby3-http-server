@@ -21,7 +21,7 @@ class SingleThreadedServer
     socket.listen(SOCKET_READ_BACKLOG)
     loop do
       conn, _addr_info = socket.accept
-      request = RequestParser.new(conn).parse
+      request = RequestParser.call(conn)
       status, headers, body = app.call(request)
       HttpResponder.call(conn, status, headers, body)
     ensure

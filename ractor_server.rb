@@ -36,7 +36,7 @@ class RactorServer
         loop do
           # this method blocks until the queue yields a connection
           conn = queue.take
-          request = RequestParser.new(conn).parse
+          request = RequestParser.call(conn)
           status, headers, body = server.app.call(request)
           HttpResponder.call(conn, status, headers, body)
         ensure

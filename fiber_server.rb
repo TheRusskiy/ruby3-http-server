@@ -37,7 +37,7 @@ class FiberServer
         # without backpressure to however is sending the requests it's hard
         # to properly load balance and queue requests
         Fiber.schedule do
-          request = RequestParser.new(conn).parse
+          request = RequestParser.call(conn)
           status, headers, body = app.call(request)
           HttpResponder.call(conn, status, headers, body)
         ensure

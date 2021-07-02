@@ -56,16 +56,14 @@ class MultiThreadedServer
 
   def start
     pool = ThreadPool.new(size: WORKERS_COUNT)
-    socket = Socket.new(:INET, :STREAM)
-    socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-    socket.bind(Addrinfo.tcp(HOST, PORT))
+    socket = TCPServer.new(HOST, PORT)
     socket.listen(SOCKET_READ_BACKLOG)
     loop do
       conn, _addr_info = socket.accept
       # execute the request in one of the threads
       pool.perform do
         begin
-          request = RequestParser.new(conn).parse
+          request = RequestParser.call(conn)
           status, headers, body = app.call(request)
           HttpResponder.call(conn, status, headers, body)
         ensure
