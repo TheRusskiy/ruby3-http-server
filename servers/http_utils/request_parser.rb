@@ -30,7 +30,7 @@ class RequestParser
           port: port,
           remote_host: remote_host
         )
-      }.merge(rake_headers(headers))
+      }.merge(rack_headers(headers))
     end
 
     private
@@ -76,7 +76,7 @@ class RequestParser
       conn.read(remaining_size)
     end
 
-    def rake_headers(headers)
+    def rack_headers(headers)
       # rack expects all headers to be prefixed with HTTP_
       # and upper cased
       headers.transform_keys do |key|
