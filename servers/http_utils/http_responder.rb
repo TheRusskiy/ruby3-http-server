@@ -55,22 +55,31 @@ class HttpResponder
     511 => 'Network Authentication Required',
   }.freeze
 
-  def self.call(conn_sock, status, headers, body)
+  # status: int
+  # headers: Hash
+  # body: array of strings
+  def self.call(conn, status, headers, body)
     # status line
     status_text = STATUS_MESSAGES[status]
-    conn_sock.send("HTTP/1.1 #{status} #{status_text}\r\n", 0)
+    conn.send("HTTP/1.1 #{status} #{status_text}\r\n", 0)
 
     # headers
-    conn_sock.send("Content-Length: #{body.sum(&:length)}\r\n", 0)
+    # we need to tell how long the body is before sending anything,
+    # this way the remote client knows when to stop reading
+    conn.send("Content-Length: #{body.sum(&:length)}\r\n", 0)
     headers.each_pair do |name, value|
-      conn_sock.send("#{name}: #{value}\r\n", 0)
+      conn.send("#{name}: #{value}\r\n", 0)
     end
-    conn_sock.send("Connection: close\r\n", 0)
-    conn_sock.send("\r\n", 0)
+
+    # tell that we don't want to keep the connection open
+    conn.send("Connection: close\r\n", 0)
+
+    # separate headers from body with an empty line
+    conn.send("\r\n", 0)
 
     # body
     body.each do |chunk|
-      conn_sock.send(chunk, 0)
+      conn.send(chunk, 0)
     end
   end
 end

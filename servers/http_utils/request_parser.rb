@@ -4,10 +4,6 @@ require 'uri'
 class RequestParser
   MAX_URI_LENGTH = 2083
   MAX_HEADER_LENGTH = (112 * 1024)
-  CF = "\012".freeze
-  CR   = "\x0d".freeze
-  LF   = "\x0a".freeze
-  CRLF = "\x0d\x0a".freeze
 
   class << self
     def call(conn)
@@ -41,7 +37,9 @@ class RequestParser
 
     def read_request_line(conn)
       # e.g. "POST /some-path?query HTTP/1.1"
-      request_line = conn.gets(CF, MAX_URI_LENGTH)
+
+      # read until we encounter a newline, max length is MAX_URI_LENGTH
+      request_line = conn.gets("\n", MAX_URI_LENGTH)
 
       raise StandardError, "EOF" unless request_line
 
@@ -55,7 +53,7 @@ class RequestParser
     def read_headers(conn)
       headers = {}
       loop do
-        line = conn.gets(LF, MAX_HEADER_LENGTH)&.strip
+        line = conn.gets("\n", MAX_HEADER_LENGTH)&.strip
 
         break if line.nil? || line.strip.empty?
 
@@ -79,6 +77,8 @@ class RequestParser
     end
 
     def rake_headers(headers)
+      # rack expects all headers to be prefixed with HTTP_
+      # and upper cased
       headers.transform_keys do |key|
         "HTTP_#{key.upcase}"
       end
